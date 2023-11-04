@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  labels:
+    app: web
+spec:
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - image: jorgescarenzi/ecom-mysql:31
+        name: ecom-mysql
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: dbdata
+          mountPath: /var/lib/mysql/
+        - name: logs
+          mountPath: /var/log/  
+      volumes:
+      - name: dbdata
+      - name: logs
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
