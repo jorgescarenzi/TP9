@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: database
   labels:
     app: web
+    app.kubernetes.io/instance: ecom-app
+  name: database
+  namespace: default
 spec:
   selector:
     matchLabels:
@@ -16,40 +18,40 @@ spec:
         app: web
     spec:
       containers:
-      - image: jorgescarenzi/ecom-mysql:31
-        name: ecom-mysql
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: mysql-rootpass
-        - name: MYSQL_USER 
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: mysql-username
-        - name: MYSQL_PASSWORD 
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: mysql-password
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "200m"
-          limits:
-            memory: "1024Mi"
-            cpu: "500m"
-        ports:
-        - containerPort: 3306
-          name: mysql
-        volumeMounts:
-        - mountPath: /var/lib/mysql/
-          name: dbdata
-        - mountPath: /var/log/  
-          name: logs
+        - env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: mysql-rootpass
+                  name: mysql-secret
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: mysql-username
+                  name: mysql-secret
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: mysql-password
+                  name: mysql-secret
+          image: 'jorgescarenzi/ecom-mysql:31'
+          name: ecom-mysql
+          ports:
+            - containerPort: 3306
+              name: mysql
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1024Mi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /var/lib/mysql/
+              name: dbdata
+            - mountPath: /var/log/
+              name: logs
       volumes:
-      - name: logs
-        persistentVolumeClaim:
-          claimName: mysql-pv-claim
+        - name: logs
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
